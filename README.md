@@ -2,12 +2,17 @@
 
 [![Status: Proof of Concept](https://img.shields.io/badge/status-proof%20of%20concept-orange)](https://github.com/OscillateLabsLLC/.github/blob/main/SUPPORT_STATUS.md)
 
-Render a **Cypher System** character — written as a ```` ```cypher ```` YAML
-block in a note — as a printable one-page character sheet inside Obsidian, and
-export it to PDF.
+Render a **Cypher System (Second Edition / C2)** character — written as a
+```` ```cypher ```` YAML block in a note — as a printable one-page character
+sheet inside Obsidian, and export it to PDF.
 
 Write a character's stats as plain YAML; flip the note to Reading view (`Cmd+E`)
 and the block renders as a styled sheet you can hand to a player or print.
+
+> **Cypher System Second Edition (C2) only.** The sheet layout follows the C2
+> rules (descriptor/type/focus, the C2 wound track, etc.). There is **no support
+> for Cypher System First Edition (v1)** — the data model and sheet are
+> C2-specific and won't represent a v1 character correctly.
 
 > **Scope:** Tier 1 characters; no validation, no calculation. The data is
 > rendered exactly as written — pools, edges, wounds, skills, and abilities are
@@ -119,7 +124,7 @@ queries, add a small `cypher: true` frontmatter flag alongside the block.
 
 Released under the MIT License (see [`LICENSE`](LICENSE)).
 
-This is an unofficial fan-made tool. The **Cypher System** is a trademark of
-Monte Cook Games, LLC. This project is not affiliated with, endorsed, or
-sponsored by Monte Cook Games. No game rules text is distributed — you supply
-your own character data.
+This is an unofficial fan-made tool for the **Cypher System Second Edition**.
+The Cypher System is a trademark of Monte Cook Games, LLC. This project is not
+affiliated with, endorsed, or sponsored by Monte Cook Games. No game rules text
+is distributed — you supply your own character data.
