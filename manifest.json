@@ -1,0 +1,10 @@
+{
+  "id": "cypher-sheets",
+  "name": "Cypher Sheets",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.0",
+  "description": "Render Cypher System v2 character notes (YAML frontmatter) as printable one-page character sheets, and export them to PDF.",
+  "author": "Oscillate Labs",
+  "authorUrl": "https://oscillatelabs.net",
+  "isDesktopOnly": true
+}

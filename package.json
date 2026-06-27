@@ -1,0 +1,23 @@
+{
+  "name": "obsidian-cypher-sheets",
+  "version": "1.0.0",
+  "description": "Obsidian plugin: render Cypher System v2 character notes as printable character sheets.",
+  "private": true,
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+  },
+  "keywords": [
+    "obsidian",
+    "cypher-system",
+    "ttrpg"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "^0.20.0",
+    "obsidian": "^1.4.11",
+    "typescript": "^5.4.0"
+  }
+}
