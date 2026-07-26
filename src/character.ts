@@ -37,6 +37,20 @@ export interface Attack {
   damage: string;
 }
 
+/**
+ * The four per-tier advancements plus the GM's-Guide "other" slot, as printed
+ * on the official C2 sheet. Each is bought once per tier, in any order; buying
+ * all four moves the character to the next tier.
+ */
+export interface Advancement {
+  capabilities: boolean;
+  perfection: boolean;
+  effort: boolean;
+  training: boolean;
+  other: boolean;
+  note?: string;
+}
+
 export interface Character {
   name: string;
   sentence: string;
@@ -57,6 +71,7 @@ export interface Character {
   abilities: Ability[];
   attacks: Attack[];
   gear: string[];
+  advancement: Advancement;
   background?: string;
 }
 
@@ -127,6 +142,72 @@ function asArray(v: unknown): unknown[] {
   return Array.isArray(v) ? v : [];
 }
 
+function bool(v: unknown): boolean {
+  if (typeof v === "boolean") return v;
+  const s = String(v ?? "").trim().toLowerCase();
+  return s === "true" || s === "yes" || s === "x" || s === "1";
+}
+
+export const ADVANCEMENT_KEYS = [
+  "capabilities",
+  "perfection",
+  "effort",
+  "training",
+  "other",
+] as const;
+
+/** Author shorthand -> canonical advancement key. */
+const ADVANCEMENT_ALIASES: Record<string, (typeof ADVANCEMENT_KEYS)[number]> = {
+  capabilities: "capabilities",
+  increase_capabilities: "capabilities",
+  pools: "capabilities",
+  perfection: "perfection",
+  move_toward_perfection: "perfection",
+  edge: "perfection",
+  effort: "effort",
+  extra_effort: "effort",
+  training: "training",
+  skill: "training",
+  skill_training: "training",
+  other: "other",
+};
+
+function advancementKey(raw: string): (typeof ADVANCEMENT_KEYS)[number] | null {
+  const k = raw.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return ADVANCEMENT_ALIASES[k] ?? null;
+}
+
+/**
+ * Accept either a map (`{effort: true}`) or a list of the advancements bought
+ * this tier (`[capabilities, effort]`); anything unrecognized leaves the boxes
+ * unchecked so the sheet prints blank for hand-tracking.
+ */
+function normAdvancement(v: unknown): Advancement {
+  const adv: Advancement = {
+    capabilities: false,
+    perfection: false,
+    effort: false,
+    training: false,
+    other: false,
+  };
+  if (Array.isArray(v)) {
+    for (const entry of v) {
+      const key = advancementKey(String(entry ?? ""));
+      if (key) adv[key] = true;
+    }
+    return adv;
+  }
+  if (v && typeof v === "object") {
+    const o = v as Record<string, unknown>;
+    for (const [rawKey, rawVal] of Object.entries(o)) {
+      const key = advancementKey(rawKey);
+      if (key) adv[key] = bool(rawVal);
+    }
+    if (o.note != null) adv.note = String(o.note);
+  }
+  return adv;
+}
+
 /** Turn loose frontmatter into a clean Character with all defaults filled. */
 export function normalize(fm: Frontmatter): Character {
   const cypherLimit = num(fm.cypher_limit, 2);
@@ -150,6 +231,7 @@ export function normalize(fm: Frontmatter): Character {
     abilities: asArray(fm.abilities).map(normAbility),
     attacks: asArray(fm.attacks).map(normAttack),
     gear: asArray(fm.gear).map((g) => String(g)),
+    advancement: normAdvancement(fm.advancement),
     background: fm.background != null ? String(fm.background) : undefined,
   };
 }

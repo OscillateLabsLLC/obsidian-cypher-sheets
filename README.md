@@ -90,6 +90,7 @@ attacks:
   - { name: "Force ray", modifier: "—", damage: "4" }
 cyphers: 2                        # number of blank GM-fill cypher slots
 gear: [extendable baton, phone]
+advancement: [capabilities, effort]   # bought so far this tier
 background: "A self-taught medium the dead talk to."
 ```
 ````
@@ -101,6 +102,13 @@ background: "A self-taught medium the dead talk to."
   `specialized`, `expert`, or `inability`. (The verbose
   `{ name, level }` form also works.)
 - **Abilities / attacks** are lists of objects — edit them in the YAML block.
+- **Advancement** renders the tier-tracking footer. Each of the four options
+  costs 4 XP and may be bought once per tier in any order; buying all four moves
+  the character to the next tier (and grants a focus ability free). `other`
+  covers the alternate advancements in the Cypher GM's Guide. Omit the field to
+  print an empty footer for pen-and-paper tracking, or use the map form
+  (`advancement: { effort: true }`) if you prefer explicit flags. Reset it when
+  you reach a new tier.
 - **Notes** and **inventory write-in lines** are added automatically to fill the
   sheet; their count adapts to the character's content.
 

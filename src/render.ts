@@ -7,7 +7,7 @@
  * table-based workarounds carried over from WeasyPrint are simply harmless.
  */
 
-import type { Ability, Character, Skill } from "./character";
+import type { Ability, Advancement, Character, Skill } from "./character";
 
 function esc(s: unknown): string {
   return String(s ?? "")
@@ -111,10 +111,23 @@ const STYLE = `
   .cypher-sheet .gear li.blank { min-height: 14px; }
   .cypher-sheet .gear li.blank::before { content: ""; }
   .cypher-sheet .notes .line { height: 17px; border-bottom: 1px solid var(--line); }
+  .cypher-sheet footer { margin-top: 2px; border-top: 2.5px solid var(--maroon); padding-top: 5px; }
+  .cypher-sheet footer .fhead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .cypher-sheet footer .fhead .hint { font-size: 7pt; color: #8a756c; font-style: italic; }
+  .cypher-sheet .adv { display: table; width: 100%; border-spacing: 5px 0; table-layout: fixed; }
+  .cypher-sheet .adv .opt { display: table-cell; vertical-align: top; border: 1px solid var(--line); border-radius: 3px; background: var(--box); padding: 4px 5px; }
+  .cypher-sheet .adv .opt.bought { border-color: var(--maroon); background: var(--maroon-soft); }
+  .cypher-sheet .adv .oname { font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--maroon); }
+  .cypher-sheet .adv .obox { float: left; width: 11px; height: 11px; margin: 0 5px 0 0; border: 1.4px solid var(--maroon); border-radius: 2px; }
+  .cypher-sheet .adv .obox.on { background: var(--maroon); }
+  .cypher-sheet .adv .odesc { clear: both; font-size: 7pt; color: #5a4a42; padding-top: 2px; line-height: 1.2; }
+  .cypher-sheet footer .advnote { font-size: 7.2pt; color: #8a756c; font-style: italic; margin-top: 3px; }
 `;
 
 const CHARS_PER_LINE = 62;
-const USABLE_ROWS = 44;
+// Reduced from 44 to make room for the advancement footer, which occupies
+// roughly four rows at the bottom of the page.
+const USABLE_ROWS = 40;
 
 /** Estimate ruled Notes lines that fit under the abilities (ported heuristic). */
 function noteLines(abilities: Ability[]): number {
@@ -136,6 +149,48 @@ function skillPips(s: Skill): string {
   const sp = on(s.level === "specialized" || s.level === "expert");
   const e = on(s.level === "expert");
   return `<span class="tsei"><span class="${t}">T</span><span class="${sp}">S</span><span class="${e}">E</span></span>`;
+}
+
+/**
+ * The five advancement slots as printed on the official C2 sheet. The first
+ * four each cost 4 XP and may be bought once per tier in any order; buying all
+ * four advances the character a tier. "Other" covers the alternate forms of
+ * advancement in the Cypher GM's Guide.
+ */
+const ADVANCEMENT_OPTIONS: Array<{
+  key: keyof Omit<Advancement, "note">;
+  label: string;
+  desc: string;
+}> = [
+  { key: "capabilities", label: "Increase Capabilities", desc: "+4 points into stat Pools" },
+  { key: "perfection", label: "Move Toward Perfection", desc: "+1 to the Edge of your choice" },
+  { key: "effort", label: "Extra Effort", desc: "+1 Effort (max 6)" },
+  { key: "training", label: "Skill Training", desc: "Gain a new skill or improve an existing one" },
+  { key: "other", label: "Other", desc: "See the Cypher GM&rsquo;s Guide" },
+];
+
+/** The tier-advancement footer: four bought-once-per-tier boxes, plus Other. */
+function renderAdvancement(adv: Advancement): string {
+  const opts = ADVANCEMENT_OPTIONS.map((o) => {
+    const bought = adv[o.key];
+    return `
+          <div class="opt${bought ? " bought" : ""}">
+            <div><span class="obox${bought ? " on" : ""}"></span><span class="oname">${esc(
+      o.label
+    )}</span></div>
+            <div class="odesc">${o.desc}</div>
+          </div>`;
+  }).join("");
+
+  return `
+    <footer>
+      <div class="fhead">
+        <span class="band">Advancement</span>
+        <span class="hint">Each costs 4 XP &middot; once per tier, any order &middot; all four = next tier (gain a focus ability free)</span>
+      </div>
+      <div class="adv">${opts}</div>
+      ${adv.note ? `<div class="advnote">${esc(adv.note)}</div>` : ""}
+    </footer>`;
 }
 
 /** Render the inner sheet markup (no <html>/<head>), reusable in preview + PDF. */
@@ -297,6 +352,8 @@ export function renderSheetBody(c: Character): string {
         </section>
       </div>
     </div>
+
+    ${renderAdvancement(c.advancement)}
   </div>`;
 }
 
