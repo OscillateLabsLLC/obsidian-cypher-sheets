@@ -129,14 +129,17 @@ const CHARS_PER_LINE = 62;
 // roughly four rows at the bottom of the page.
 const USABLE_ROWS = 40;
 
-/** Estimate ruled Notes lines that fit under the abilities (ported heuristic). */
-function noteLines(abilities: Ability[]): number {
-  let rows = 2; // the two section banners
+/** Estimate ruled Notes lines that fit in the right column (ported heuristic). */
+function noteLines(abilities: Ability[], cyphers: number): number {
+  let rows = 3; // the Abilities, Cyphers, and Notes banners
   for (const ab of abilities) {
     rows += 1; // name row
     rows += Math.max(1, Math.ceil((ab.text?.length ?? 0) / CHARS_PER_LINE));
     rows += 0.4; // amortized inter-ability margin
   }
+  // Cyphers moved to the right column so the left one stops setting the page
+  // height; its limit line plus one row per slot now competes for Notes space.
+  rows += 1 + cyphers;
   return Math.trunc(Math.max(4, Math.min(40, USABLE_ROWS - rows)));
 }
 
@@ -206,7 +209,7 @@ export function renderSheetBody(c: Character): string {
     { key: "major", count: c.wounds.major },
   ];
   const blankInventory = Math.max(2, Math.min(6, 8 - c.gear.length));
-  const notes = noteLines(c.abilities);
+  const notes = noteLines(c.abilities, Math.max(0, c.cyphers));
 
   const poolsHtml = pools
     .map(
@@ -326,14 +329,6 @@ export function renderSheetBody(c: Character): string {
 
         ${attacksHtml}
 
-        <section class="cyphers">
-          <div class="band">Cyphers</div>
-          <div class="climit">Cypher limit: <b>${esc(
-            c.cypher_limit
-          )}</b> &mdash; discharge after use.</div>
-          ${cyphersHtml}
-        </section>
-
         <section class="gear">
           <div class="band">Inventory &amp; Equipment</div>
           <ul>${gearHtml}</ul>
@@ -344,6 +339,14 @@ export function renderSheetBody(c: Character): string {
         <section>
           <div class="band">Special Abilities</div>
           ${abilitiesHtml}
+        </section>
+
+        <section class="cyphers">
+          <div class="band">Cyphers</div>
+          <div class="climit">Cypher limit: <b>${esc(
+            c.cypher_limit
+          )}</b> &mdash; discharge after use.</div>
+          ${cyphersHtml}
         </section>
 
         <section class="notes">
@@ -364,7 +367,13 @@ export function renderSheetDocument(c: Character): string {
 <head>
 <meta charset="utf-8">
 <title>${esc(c.name)} — Cypher System Character Sheet</title>
-<style>${STYLE}</style>
+<style>${STYLE}
+  /* Standalone export only: the shared style is scoped to .cypher-sheet so it
+     can't leak into the user's notes, which leaves the UA's default body
+     margin in place. It costs ~8px of print height and pushes tall sheets onto
+     a second page, so drop it here where the sheet owns the whole document. */
+  html, body { margin: 0; padding: 0; }
+</style>
 </head>
 <body>${renderSheetBody(c)}</body>
 </html>`;
